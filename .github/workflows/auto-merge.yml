@@ -1,0 +1,27 @@
+name: Auto-Merge to Main & Trigger Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Auto Merge PR into main
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Auto-merge PR via GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Merging PR #${{ github.event.pull_request.number }} automatically..."
+          gh pr merge ${{ github.event.pull_request.number }} --merge --auto || gh pr merge ${{ github.event.pull_request.number }} --merge --admin || true
